@@ -1,13 +1,49 @@
 // // The module 'vscode' contains the VS Code extensibility API
 // // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { TimeRegister } from './types/types';
 
 
 let isTyping = false;
 let lastActivity = Date.now();
-let interval: NodeJS.Timer;
+let interval: NodeJS.Timeout;
+let totalSeconds = 0
+let language: string | undefined;
+let projetctName: string | undefined;
+let hoursSpentArray = [] as TimeRegister[]
 
-export function acticvate(){}
+export function acticvate(context: vscode.ExtensionContext) {
+    vscode.workspace.onDidChangeTextDocument(() => {
+        lastActivity = Date.now()
+        language = vscode.window.activeTextEditor?.document.languageId;
+        projetctName = vscode.window.activeTextEditor?.document.fileName;
+
+        if (!isTyping) {
+            isTyping = true
+            console.log('User started typing...');
+        }
+    })
+
+    interval = setInterval(() => {
+        let now = Date.now()
+        if (isTyping && now - lastActivity <= 60 * 1000) {
+            isTyping = false
+            totalSeconds += 5
+            console.log('total seconds: ' + totalSeconds);
+        } else {
+            isTyping = false
+        }
+    }, 5000)
+
+
+    
+
+    context.subscriptions.push({
+        dispose() {
+            clearInterval(interval)
+        }
+    })
+}
 
 // // This method is called when your extension is activated
 // // Your extension is activated the very first time the command is executed
