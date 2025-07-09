@@ -1,4 +1,4 @@
-export interface TimeRegister {
+export interface CodingTime {
     date: string
     totalSeconds: number
     projects: { name: string; seconds: number }[]
@@ -7,4 +7,15 @@ export interface TimeRegister {
     operatingSystems: { system: string; seconds: number }[]
     createAt?: Date
     updateAt?: Date
+}
+
+type Values = Record<string, number>
+
+export type CodingTimeObj = {
+    date: string
+    totalSeconds: number
+    editors: Values
+    languages: Values
+    projects: Values
+    operatingSystems: Values
 }
