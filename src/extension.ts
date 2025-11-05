@@ -1,97 +1,66 @@
-// // The module 'vscode' contains the VS Code extensibility API
-// // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { CodingTime, CodingTimeObj } from './types/types';
-import { addTime, checkIfIsNewDay, createNewCodingTime, getEditorName, getOSName } from './helpers/helpers';
+import { CodingTime } from './types/types';
+import registerActivity from './helpers/activity';
 
-let isTyping = false;
-let lastActivity = Date.now();
-let interval: NodeJS.Timeout;
-let totalSeconds = 0
-let language: string | undefined;
-let projetctName: string | undefined;
-let hoursSpentArray = [] as CodingTime[]
+export async function activate(context: vscode.ExtensionContext) {
+    console.log("✅ Extension activated successfully!")
+    const state = {
+        lastActivity: 0,
+        lastCodingTime: null as CodingTime | null, // verify if exists some array in cache for handlers offline
+        codingTimeArray: [] as CodingTime[],
+    };
+    try {
+        const listeners: vscode.Disposable[] = [];
+        listeners.push(
+            // triggered when the user types
+            vscode.workspace.onDidChangeTextDocument(async (event) => {
+                if (!event.document) return;
+                const fullFileName = event.document.fileName;
+                await registerActivity({ eventType: 'edit', fullFileName, state });
+            }),
 
-export function acticvate(context: vscode.ExtensionContext) {
-    vscode.workspace.onDidChangeTextDocument(() => {
-        lastActivity = Date.now()
-        language = vscode.window.activeTextEditor?.document.languageId;
-        projetctName = vscode.window.activeTextEditor?.document.fileName;
+            // triggered when the user changes files (including switching to an already open file)
+            vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+                if (!editor) return;
+                const fullFileName = editor.document.fileName;
+                if (fullFileName.includes('.git')) {
+                    return
+                };
+                await registerActivity({ eventType: 'switchFile', fullFileName, state });
+            }),
 
-        if (!isTyping) {
-            isTyping = true
-            console.log('User started typing...');
-        }
-    })
+            // triggered when the user scrolls the screen
+            vscode.window.onDidChangeTextEditorVisibleRanges(async (editor) => {
+                if (!editor) return;
+                const fullFileName = editor.textEditor.document.fileName
+                await registerActivity({ eventType: 'cursorMove', fullFileName, state });
+            }),
 
-    // save in cache
-    interval = setInterval(async () => {
-        let now = Date.now()
-        if (isTyping && now - lastActivity <= 60 * 1000) {
+            // triggered when the user saves (Ctrl+S)
+            vscode.workspace.onDidSaveTextDocument(async (document) => {
+                const fullFileName = document.fileName;
+                await registerActivity({ eventType: 'save', fullFileName, state });
+            }),
 
-            totalSeconds += 5
-            console.log('total seconds: ' + totalSeconds);
+            // triggered when the user moves the cursor, selects text 
+            vscode.window.onDidChangeTextEditorSelection(async (event) => {
+                const fullFileName = event.textEditor.document.fileName;
+                await registerActivity({ eventType: 'cursorMove', fullFileName, state });
+            }),
 
-            const { isNewDay, date } = checkIfIsNewDay({ firstDate: new Date(lastActivity), secondDate: new Date() })
+            // triggered when the user changes workspace (project)
+            vscode.workspace.onDidChangeWorkspaceFolders(async (event) => {
+                const fullFileName = event.added.map(f => f.name).join(", ");
+                await registerActivity({ eventType: 'workspaceChange', fullFileName, state });
+            })
+        );
+        
+        context.subscriptions.push( // undertand it after
+            ...listeners,
+            // ...commands
+            { dispose() { } })
 
-            let getCache = context.globalState.get<CodingTimeObj[]>('codingTime') || undefined
-            if (!getCache) {
-                const codingTime = createNewCodingTime(date)
-                getCache = [codingTime]
-            }
-
-            const editor = getEditorName()
-            const os = getOSName()
-
-            if (isNewDay) {
-                const newDate = new Date().toISOString().split('T')[0]
-                const newCodingTime = createNewCodingTime(newDate)
-                const codingTimeUpdated = addTime({ codingTime: newCodingTime, editor, os, language: language as string, project: projetctName as string, seconds: totalSeconds as number })
-                await context.globalState.update('codingTime', getCache.push(codingTimeUpdated))
-            } else {
-                const lastCodingTime = getCache[getCache.length - 1]
-                const codingTimeUpdated = addTime({ codingTime: lastCodingTime, editor, os, language: language as string, project: projetctName as string, seconds: totalSeconds as number })
-                await context.globalState.update('codingTime', [codingTimeUpdated])
-            }
-
-        } else {
-            isTyping = false
-        }
-
-    }, 5000)
-
-    // save values in DB
-    // save values in DB
-
-    context.subscriptions.push({
-        dispose() {
-            //salvar antes de sair
-            //salvar antes de sair
-            //salvar antes de sair
-            clearInterval(interval)
-        }
-    })
+    } catch (error) {
+        console.error('Error initializing extension:', error)
+    }
 }
-
-// // This method is called when your extension is activated
-// // Your extension is activated the very first time the command is executed
-// export function activate(context: vscode.ExtensionContext) {
-
-// 	// Use the console to output diagnostic information (console.log) and errors (console.error)
-// 	// This line of code will only be executed once when your extension is activated
-// 	console.log('Congratulations, your extension "foccusdev" is now active!');
-
-// 	// The command has been defined in the package.json file
-// 	// Now provide the implementation of the command with registerCommand
-// 	// The commandId parameter must match the command field in package.json
-// 	const disposable = vscode.commands.registerCommand('foccusdev.helloWorld', () => {
-// 		// The code you place here will be executed every time your command is executed
-// 		// Display a message box to the user
-// 		vscode.window.showInformationMessage('Hello World from FoccusDEV!');
-// 	});
-
-// 	context.subscriptions.push(disposable);
-// }
-
-// // This method is called when your extension is deactivated
-// export function deactivate() {}
