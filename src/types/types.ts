@@ -1,13 +1,13 @@
 export interface Heartbeat {
     id: string,
+    timestamp: number
     filePath: string
     language: string
     project: string
     editor: string
     branch: string
     os: string
-    timestamp: number
-    processed: boolean
+    sent: number
 }
 
 export type EventType = 'edit' | 'save' | 'screenScrolling' | 'switchFile' | 'cursorMove' | 'workspaceChange'
