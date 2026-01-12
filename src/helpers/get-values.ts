@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import { platform } from 'os';
 
-export const getBranchName = async (): Promise<string | null> => {
+export const getBranchName = async (): Promise<string> => {
     try {
         const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
         const git = gitExtension?.getAPI(1);
-        if (!git || git.repositories.length === 0) return null;
+        if (!git || git.repositories.length === 0) return '';
         const repo = git.repositories[0];
-        return repo.state.HEAD?.name || null;
+        return repo.state.HEAD?.name || '';
     } catch {
-        return null;
+        return '';
     }
 };
 

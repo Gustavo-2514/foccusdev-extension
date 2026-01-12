@@ -5,12 +5,16 @@ import { LocalDatabase } from "./database/db.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
-  LocalDatabase.init(context);
 
+  const gitExtension = vscode.extensions.getExtension("vscode.git")?.exports;
+  if (!gitExtension) return;
+
+  const DB = await LocalDatabase.init(context);
   const state: ActivityState = {
     lastActivity: 0,
     lastSent: 0,
     fullFileName: "",
+    currentBranch: "",
     lastHeartbeat: null,
     heartbeatBuffer: [],
     interval: null,
@@ -18,6 +22,20 @@ export async function activate(context: vscode.ExtensionContext) {
   };
 
   try {
+    const git = gitExtension.getAPI(1);
+    git.repositories.forEach((repo: any) => {
+      repo.state.onDidChange(async () => {
+        const branch = repo.state.HEAD?.name;
+        if (state.currentBranch === "") {
+          state.currentBranch = branch || "";
+          return;
+        } else if (branch === state.currentBranch) return;
+
+        state.currentBranch = branch || "";
+        await registerActivity(context, { eventType: "branchChange", state });
+      });
+    });
+
     const listeners: vscode.Disposable[] = [];
     listeners.push(
       // triggered when the user types
@@ -56,22 +74,11 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!event) return;
         state.fullFileName = event.textEditor.document.fileName;
         await registerActivity(context, { eventType: "cursorMove", state });
-      }),
-
-      // triggered when the user changes workspace (project)
-      vscode.workspace.onDidChangeWorkspaceFolders(async (event) => {
-        state.fullFileName = event.added.map((f) => f.name).join(", ");
-        await registerActivity(context, {
-          eventType: "workspaceChange",
-          state,
-        });
       })
     );
 
-    context.subscriptions.push(...listeners, {
-      dispose() {
-        listeners.forEach((listener) => listener.dispose());
-      },
+    context.subscriptions.push({
+      dispose: () => DB.close(),
     });
   } catch (error) {
     console.error("Error initializing extension:", error);

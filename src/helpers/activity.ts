@@ -1,45 +1,59 @@
-import { ActivityState, EventType } from "../types/types.js"
-import { DEBOUNCEMS, frequentEvents, INACTIVITY_LIMIT, structuralEvents } from "./const.js";
+import { ActivityState, EventType } from "../types/types.js";
+import {
+  DEBOUNCEMS,
+  frequentEvents,
+  INACTIVITY_LIMIT,
+  structuralEvents,
+} from "./const.js";
 import { ExtensionContext } from "vscode";
 import { createAndSaveHeartbeat } from "./heartbeat.js";
 
 const debounceActivity = (state: ActivityState): boolean => {
-    const now = Date.now()
-    const isDebounced = now - state.lastRegister < DEBOUNCEMS
-    if (!isDebounced) state.lastRegister = now
-    return isDebounced
-}
+  const now = Date.now();
+  const isDebounced = now - state.lastRegister < DEBOUNCEMS;
+  if (!isDebounced) state.lastRegister = now;
+  return isDebounced;
+};
 
-export const exceededInactivityLimit = ({ state }: { state: ActivityState }): { exceededLimit: boolean } => {
-    const now = Date.now()
-    return { exceededLimit: now - state.lastActivity >= INACTIVITY_LIMIT }
-}
+export const exceededHBLimit = ({
+  state,
+}: {
+  state: ActivityState;
+}): { exceededLimit: boolean } => {
+  const now = Date.now();
+  return {
+    exceededLimit:
+      now - (state.lastHeartbeat?.timestamp as number) >= INACTIVITY_LIMIT,
+  };
+};
 
-export const registerActivity = async (context: ExtensionContext, { eventType, state }: { eventType: EventType, state: ActivityState }): Promise<void> => {
-    try {
-        if (debounceActivity(state)) return
-        if (!state.fullFileName) return;
+export const registerActivity = async (
+  context: ExtensionContext,
+  { eventType, state }: { eventType: EventType; state: ActivityState }
+): Promise<void> => {
+  try {
+    if (debounceActivity(state)) return;
+    if (!state.fullFileName) return;
+    console.log({ eventType });
 
-        //if it´s the first criation
-        if (!state.lastHeartbeat) {
-            await createAndSaveHeartbeat(context, { state })
-            return
-        }
-
-        const { exceededLimit } = exceededInactivityLimit({ state })
-        if (frequentEvents.includes(eventType)) {
-            if (exceededLimit) await createAndSaveHeartbeat(context, { state })
-
-        } else if (structuralEvents.includes(eventType)) {
-            if (state.interval) {
-                clearTimeout(state.interval);
-            }
-            state.interval = setTimeout(async () => {
-                await createAndSaveHeartbeat(context, { state })
-            }, 1500);
-        }
-
-    } finally {
-        state.lastActivity = Date.now();
+    //if it´s the first criation
+    if (!state.lastHeartbeat) {
+      await createAndSaveHeartbeat(context, { state });
+      return;
     }
+
+    if (frequentEvents.includes(eventType)) {
+      const { exceededLimit } = exceededHBLimit({ state });
+      if (exceededLimit) await createAndSaveHeartbeat(context, { state });
+    } else if (structuralEvents.includes(eventType)) {
+      if (state.interval) {
+        clearTimeout(state.interval);
+      }
+      state.interval = setTimeout(async () => {
+        await createAndSaveHeartbeat(context, { state });
+      }, 1500);
+    }
+  } finally {
+    state.lastActivity = Date.now();
+  }
 };
