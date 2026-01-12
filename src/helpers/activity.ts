@@ -23,7 +23,7 @@ export const exceededHBLimit = ({
   const now = Date.now();
   return {
     exceededLimit:
-      now - (state.lastHeartbeat?.timestamp as number) >= INACTIVITY_LIMIT,
+      now - (state.lastHeartbeat?.timestamp ?? 0) * 1000 >= INACTIVITY_LIMIT
   };
 };
 
