@@ -1,5 +1,3 @@
-import { languages } from "vscode";
-
 export interface Heartbeat {
   id: string;
   timestamp: number;
@@ -12,14 +10,13 @@ export interface Heartbeat {
 }
 
 export type EventType =
-  | "edit"
-  | "save"
+  | "changeInFile"
   | "screenScrolling"
   | "switchFile"
   | "cursorMove"
   | "branchChange";
 
-export interface ActivityState {
+export interface ActivityStateInterface {
   lastActivity: number;
   lastSent: number;
   currentBranch: string;

@@ -1,29 +1,18 @@
-import { ActivityState, EventType } from "../types/types.js";
-import {
-  DEBOUNCEMS,
-  frequentEvents,
-  INACTIVITY_LIMIT,
-  structuralEvents,
-} from "./const.js";
+import { ActivityStateInterface, EventType } from "../types/types.js";
+import { frequentEvents, INACTIVITY_LIMIT, structuralEvents } from "./const.js";
 import { ExtensionContext } from "vscode";
-import { createAndSaveHeartbeat } from "./heartbeat.js";
-
-const debounceActivity = (state: ActivityState): boolean => {
-  const now = Date.now();
-  const isDebounced = now - state.lastRegister < DEBOUNCEMS;
-  if (!isDebounced) state.lastRegister = now;
-  return isDebounced;
-};
+import { createHeartbeat, flushHeartbeat } from "./heartbeat.js";
+import { ActivityState } from "../activity-state.js";
 
 export const exceededHBLimit = ({
   state,
 }: {
-  state: ActivityState;
+  state: ActivityStateInterface;
 }): { exceededLimit: boolean } => {
   const now = Date.now();
   return {
     exceededLimit:
-      now - (state.lastHeartbeat?.timestamp ?? 0) * 1000 >= INACTIVITY_LIMIT
+      now - (state.lastHeartbeat?.timestamp ?? 0) * 1000 >= INACTIVITY_LIMIT,
   };
 };
 
@@ -32,28 +21,31 @@ export const registerActivity = async (
   { eventType, state }: { eventType: EventType; state: ActivityState }
 ): Promise<void> => {
   try {
-    if (debounceActivity(state)) return;
-    if (!state.fullFileName) return;
-    console.log({ eventType });
+    if (state.shouldDebounce()) return;
+    if (!state.getRawFileName()) return;
 
     //if it´s the first criation
-    if (!state.lastHeartbeat) {
-      await createAndSaveHeartbeat(context, { state });
+    if (!state.hasHeartbeat()) {
+      createHeartbeat({ state });
       return;
     }
 
     if (frequentEvents.includes(eventType)) {
-      const { exceededLimit } = exceededHBLimit({ state });
-      if (exceededLimit) await createAndSaveHeartbeat(context, { state });
-    } else if (structuralEvents.includes(eventType)) {
-      if (state.interval) {
-        clearTimeout(state.interval);
+      const exeeded = state.exceededHBLimit();
+      if (exeeded) {
+        createHeartbeat({ state });
       }
-      state.interval = setTimeout(async () => {
-        await createAndSaveHeartbeat(context, { state });
+    } else if (structuralEvents.includes(eventType)) {
+      state.schedule(async () => {
+        createHeartbeat({ state });
       }, 1500);
     }
+
+    const flushTimeExceeded = state.shouldFlush();
+    if (flushTimeExceeded) {
+      await flushHeartbeat(context, { state });
+    }
   } finally {
-    state.lastActivity = Date.now();
+    state.markActivity();
   }
 };

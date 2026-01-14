@@ -30,10 +30,7 @@ export class LocalDatabase {
       if (fs.existsSync(instance.dbPath)) {
         const fileBuffer = fs.readFileSync(instance.dbPath);
         instance.db = new instance.SQL.Database(fileBuffer);
-        console.log("got old");
       } else {
-        console.log("got new");
-
         instance.db = new instance.SQL.Database();
         instance.db.exec(schema);
         instance.save();
@@ -41,8 +38,7 @@ export class LocalDatabase {
 
       LocalDatabase.instance = instance;
     }
-    console.log("initialized DB...");
-
+    console.log("DB initialized ✅");
     return LocalDatabase.instance;
   }
 
@@ -64,8 +60,6 @@ export class LocalDatabase {
     if (!result.length) return false;
 
     const count = Number(result[0].values[0][0] ?? 0);
-    console.log(count > 0 ? "tem" : 'não' );
-    
     return count > 0;
   }
 
@@ -89,8 +83,6 @@ export class LocalDatabase {
       branch: row[6],
       os: row[7],
     }));
-    console.log(hbs);
-    
   }
 
   public insertHeartbeat(hb: Heartbeat) {
@@ -126,8 +118,6 @@ export class LocalDatabase {
     if (ids.length === 0) return;
 
     const placeholders = ids.map(() => "?").join(",");
-    console.log({placeholders});
-    
     this.db.run(`DELETE FROM heartbeats WHERE id IN (${placeholders})`, ids);
     this.save();
   }

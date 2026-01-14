@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { ActivityState } from "./types/types.js";
 import { registerActivity } from "./helpers/activity.js";
 import { LocalDatabase } from "./database/db.js";
+import { ActivityState } from "./activity-state.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
@@ -10,46 +10,40 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!gitExtension) return;
 
   const DB = await LocalDatabase.init(context);
-  const state: ActivityState = {
-    lastActivity: 0,
-    lastSent: 0,
-    fullFileName: "",
-    currentBranch: "",
-    lastHeartbeat: null,
-    heartbeatBuffer: [],
-    interval: null,
-    lastRegister: 0,
-  };
+  const state = new ActivityState();
 
   try {
+    // triggered when the user changes the git branch
     const git = gitExtension.getAPI(1);
     git.repositories.forEach((repo: any) => {
       repo.state.onDidChange(async () => {
-        const branch = repo.state.HEAD?.name;
-        if (state.currentBranch === "") {
-          state.currentBranch = branch || "";
-          return;
-        } else if (branch === state.currentBranch) return;
+        const currentBranch = repo.state.HEAD?.name;
+        const stateBranch = state.getCurrentBranch();
 
-        state.currentBranch = branch || "";
+        if (stateBranch === "") {
+          state.setCurrentBranch(currentBranch || "");
+          return;
+        } else if (currentBranch === stateBranch) return;
+
+        state.setCurrentBranch(currentBranch || "");
         await registerActivity(context, { eventType: "branchChange", state });
       });
     });
 
     const listeners: vscode.Disposable[] = [];
     listeners.push(
-      // triggered when the user types
+      // triggered when the user types or saves the file
       vscode.workspace.onDidChangeTextDocument(async (event) => {
-        if (!event.document) return;
-        state.fullFileName = event.document.fileName;
-        await registerActivity(context, { eventType: "edit", state });
+        if (!event.document) return; 
+        state.setFullFileName(event.document.fileName);
+        await registerActivity(context, { eventType: "changeInFile", state });
       }),
 
       // triggered when the user changes files (including switching to an already open file)
       vscode.window.onDidChangeActiveTextEditor(async (editor) => {
         if (!editor) return;
-        state.fullFileName = editor.document.fileName;
-        if (state.fullFileName.includes(".git")) {
+        state.setFullFileName(editor.document.fileName);
+        if (state.getRawFileName().includes(".git")) {
           return;
         }
         await registerActivity(context, { eventType: "switchFile", state });
@@ -58,21 +52,14 @@ export async function activate(context: vscode.ExtensionContext) {
       // triggered when the user scrolls the screen
       vscode.window.onDidChangeTextEditorVisibleRanges(async (editor) => {
         if (!editor) return;
-        state.fullFileName = editor.textEditor.document.fileName;
+        state.setFullFileName(editor.textEditor.document.fileName);
         await registerActivity(context, { eventType: "cursorMove", state });
-      }),
-
-      // triggered when the user saves (Ctrl+S)
-      vscode.workspace.onDidSaveTextDocument(async (document) => {
-        if (!document) return;
-        state.fullFileName = document.fileName;
-        await registerActivity(context, { eventType: "save", state });
       }),
 
       // triggered when the user moves the cursor, selects text
       vscode.window.onDidChangeTextEditorSelection(async (event) => {
         if (!event) return;
-        state.fullFileName = event.textEditor.document.fileName;
+        state.setFullFileName(event.textEditor.document.fileName);
         await registerActivity(context, { eventType: "cursorMove", state });
       })
     );
