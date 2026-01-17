@@ -29,7 +29,7 @@ export const createHeartbeat = ({ state }: { state: ActivityState }) => {
 
 export const flushHeartbeat = async (
   context: ExtensionContext,
-  { state }: { state: ActivityState }
+  { state }: { state: ActivityState },
 ) => {
   try {
     // example request

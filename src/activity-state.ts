@@ -1,8 +1,15 @@
+import * as vscode from "vscode";
 import path from "path";
-import { ActivityStateInterface, Heartbeat } from "./types/types";
+import { Heartbeat } from "./types/types";
 import { getEditorName, getOSName } from "./helpers/get-values";
-import { DEBOUNCEMS, FLUSHTIME, INACTIVITY_LIMIT } from "./helpers/const";
-import { ExtensionContext } from "vscode";
+import {
+  API_KEY_DISMISSED,
+  DEBOUNCEMS,
+  FLUSHTIME,
+  INACTIVITY_LIMIT,
+} from "./helpers/const";
+import { getApiKey } from "./helpers/utils";
+import { requireApiKey } from "./database/commands/set-api-key";
 
 export class ActivityState {
   private lastActivity: number = 0;
@@ -11,13 +18,51 @@ export class ActivityState {
   private heartbeatBuffer: Heartbeat[] = [];
   private lastRegister = 0;
   private interval: NodeJS.Timeout | null = null;
+  private hasApiKey: boolean = false;
 
   private fullFileName: string = "";
   private os: string = getOSName();
   private editor: string = getEditorName();
   private currentBranch: string = "";
 
-  constructor() {}
+  private constructor() {}
+
+  public static async init(context: vscode.ExtensionContext) {
+    const state = new ActivityState();
+    await state.checkApiKey(context, state);
+    return state;
+  }
+
+  public async checkApiKey(
+    context: vscode.ExtensionContext,
+    state: ActivityState,
+  ) {
+    const dismissed = context.globalState.get<boolean>(API_KEY_DISMISSED);
+    if (dismissed) {
+      return;
+    }
+
+    const { apiKey, hasApiKey } = await getApiKey(context);
+
+    if (hasApiKey) {
+      this.hasApiKey = true;
+      return;
+    }
+
+    const key = await requireApiKey(context, state, apiKey);
+    if (!key) {
+      await context.globalState.update(API_KEY_DISMISSED, true);
+    }
+    return;
+  }
+
+  public hasApiKeySaved() {
+    return this.hasApiKey;
+  }
+
+  public setApiKey() {
+    this.hasApiKey = true;
+  }
 
   public get heartbeatBufferData() {
     return this.heartbeatBuffer;

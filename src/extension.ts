@@ -2,17 +2,26 @@ import * as vscode from "vscode";
 import { registerActivity } from "./helpers/activity.js";
 import { LocalDatabase } from "./database/db.js";
 import { ActivityState } from "./activity-state.js";
+import { requireApiKey } from "./database/commands/set-api-key.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
-
   const gitExtension = vscode.extensions.getExtension("vscode.git")?.exports;
   if (!gitExtension) return;
 
   const DB = await LocalDatabase.init(context);
-  const state = new ActivityState();
+  const state = await ActivityState.init(context);
 
   try {
+    // ----------- COMMANDS -----------
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "foccusdev.setApiKey",
+        async () => await requireApiKey(context, state),
+      ),
+    );
+
+    // ----------- EVENTS -----------
     // triggered when the user changes the git branch
     const git = gitExtension.getAPI(1);
     git.repositories.forEach((repo: any) => {
@@ -34,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
     listeners.push(
       // triggered when the user types or saves the file
       vscode.workspace.onDidChangeTextDocument(async (event) => {
-        if (!event.document) return; 
+        if (!event.document) return;
         state.setFullFileName(event.document.fileName);
         await registerActivity(context, { eventType: "changeInFile", state });
       }),
@@ -61,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!event) return;
         state.setFullFileName(event.textEditor.document.fileName);
         await registerActivity(context, { eventType: "cursorMove", state });
-      })
+      }),
     );
 
     context.subscriptions.push({

@@ -6,5 +6,7 @@ export const FLUSHTIME = 30000; // 30s
 
 // string constants
 export const PUBLIC_API_URL = "";
+export const API_KEY_DISMISSED = "apiKeyDismissed";
+
 export const frequentEvents: EventType[] = ["changeInFile", "screenScrolling", "cursorMove" , ];
 export const structuralEvents: EventType[] = ["switchFile", "branchChange"];
