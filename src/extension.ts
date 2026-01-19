@@ -62,7 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.onDidChangeTextEditorVisibleRanges(async (editor) => {
         if (!editor) return;
         state.setFullFileName(editor.textEditor.document.fileName);
-        await registerActivity(context, { eventType: "cursorMove", state });
+        await registerActivity(context, { eventType: "screenScrolling", state });
       }),
 
       // triggered when the user moves the cursor, selects text
