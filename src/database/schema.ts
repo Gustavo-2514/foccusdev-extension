@@ -7,8 +7,9 @@ const schema = `
     project TEXT,
     editor TEXT NOT NULL,
     branch TEXT,
-    os TEXT NOT NULL
-  );
+    os TEXT NOT NULL,
+    source TEXT NOT NULL CHECK (source IN ('human', 'ai', 'debugging'))
+);
 
   CREATE INDEX IF NOT EXISTS idx_heartbeats_timestamp
     ON heartbeats(timestamp);

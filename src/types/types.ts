@@ -1,3 +1,5 @@
+export type SourceType = "human" | "ai" | "debugging";
+
 export interface Heartbeat {
   id: string;
   timestamp: number;
@@ -7,14 +9,8 @@ export interface Heartbeat {
   editor: string;
   branch: string;
   os: string;
+  source: SourceType;
 }
-
-export type EventType =
-  | "changeInFile"
-  | "screenScrolling"
-  | "switchFile"
-  | "cursorMove"
-  | "branchChange";
 
 export interface ActivityStateInterface {
   lastActivity: number;
@@ -26,3 +22,10 @@ export interface ActivityStateInterface {
   lastRegister: number;
   interval: NodeJS.Timeout | null;
 }
+
+export type EventType =
+  | "changeInFile"
+  | "screenScrolling"
+  | "switchFile"
+  | "cursorMove"
+  | "branchChange";

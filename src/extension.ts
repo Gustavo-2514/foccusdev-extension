@@ -44,8 +44,14 @@ export async function activate(context: vscode.ExtensionContext) {
       // triggered when the user types or saves the file
       vscode.workspace.onDidChangeTextDocument(async (event) => {
         if (!event.document) return;
+        if (event.contentChanges.length === 0) return;
+
         state.setFullFileName(event.document.fileName);
-        await registerActivity(context, { eventType: "changeInFile", state });
+        await registerActivity(context, {
+          eventType: "changeInFile",
+          state,
+          source:"human"
+        });
       }),
 
       // triggered when the user changes files (including switching to an already open file)

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import path from "path";
-import { Heartbeat } from "./types/types";
+import { EventType, Heartbeat, SourceType } from "./types/types";
 import { getEditorName, getOSName } from "./helpers/get-values";
 import {
   API_KEY_DISMISSED,
@@ -19,7 +19,7 @@ export class ActivityState {
   private lastRegister = 0;
   private interval: NodeJS.Timeout | null = null;
   private hasApiKey: boolean = false;
-
+  // private lastSource: string = "";
   private fullFileName: string = "";
   private os: string = getOSName();
   private editor: string = getEditorName();
@@ -96,6 +96,8 @@ export class ActivityState {
   }
 
   public shouldDebounce(): boolean {
+    console.log('debounced');
+    
     const now = Date.now();
     if (now - this.lastRegister < DEBOUNCEMS) return true;
     this.lastRegister = now;
@@ -116,6 +118,7 @@ export class ActivityState {
   public pushHeartbeat(hb: Heartbeat) {
     this.lastHeartbeat = hb;
     this.heartbeatBuffer.push(hb);
+    console.log(this.lastHeartbeat);
   }
 
   public schedule(fn: () => Promise<void>, delay: number) {
@@ -141,5 +144,12 @@ export class ActivityState {
 
   public markActivity() {
     this.lastActivity = Date.now();
+  }
+
+  public compareSources(sourceDetected: SourceType): boolean {
+    let value = this.lastHeartbeat!.source !== sourceDetected;
+    console.log('differentSources: ',value);
+
+    return value;
   }
 }

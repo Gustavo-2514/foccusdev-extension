@@ -2,13 +2,19 @@ import path from "path";
 const { v4: uuidv4 } = require("uuid");
 
 import { getProjectName } from "./get-values.js";
-import { Heartbeat } from "../types/types.js";
+import { Heartbeat, SourceType } from "../types/types.js";
 import { PUBLIC_API_URL } from "./const.js";
 import { getApiKey } from "./utils.js";
 import { ExtensionContext } from "vscode";
 import { ActivityState } from "../activity-state.js";
 
-export const createHeartbeat = ({ state }: { state: ActivityState }) => {
+export const createHeartbeat = ({
+  state,
+  source,
+}: {
+  state: ActivityState;
+  source?: SourceType;
+}) => {
   const filePath = state.getNormalizedFilePath();
   const language = path.extname(filePath).replace(".", "");
   const { editor, os } = state.getPermanentValues();
@@ -22,6 +28,7 @@ export const createHeartbeat = ({ state }: { state: ActivityState }) => {
     project: getProjectName(),
     os: os,
     timestamp: Math.floor(Date.now() / 1000),
+    source: source || "human",
   } satisfies Heartbeat;
 
   state.pushHeartbeat(heartbeat);

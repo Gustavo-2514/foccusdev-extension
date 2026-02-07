@@ -65,7 +65,7 @@ export class LocalDatabase {
 
   public getOldestHeartbeats() {
     const result = this.db.exec(`
-      SELECT id, timestamp, filePath, language, project, editor, branch, os
+      SELECT id, timestamp, filePath, language, project, editor, branch, os, source
       FROM heartbeats
       ORDER BY timestamp ASC
       LIMIT 50
@@ -82,6 +82,7 @@ export class LocalDatabase {
       editor: row[5],
       branch: row[6],
       os: row[7],
+      source: row[8],
     }));
   }
 
@@ -95,8 +96,9 @@ export class LocalDatabase {
         project,
         editor,
         branch,
-        os
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        os,
+        source
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run([
@@ -108,6 +110,7 @@ export class LocalDatabase {
       hb.editor,
       hb.branch,
       hb.os,
+      hb.source,
     ]);
 
     stmt.free();
