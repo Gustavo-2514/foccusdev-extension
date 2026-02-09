@@ -2,15 +2,25 @@ import * as vscode from "vscode";
 import { registerActivity } from "./helpers/activity.js";
 import { LocalDatabase } from "./database/db.js";
 import { ActivityState } from "./activity-state.js";
-
+import { FoccusWebview } from "./activity-bar/web-view.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
   try {
     const DB = await LocalDatabase.init(context);
     const state = await ActivityState.init(context);
+
+
+    // Webview
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        "foccusdevView",
+        new FoccusWebview(),
+      ),
+    );
+
     // ----------- COMMANDS -----------
-   
+
 
     // ----------- EVENTS -----------
     // triggered when the user changes the git branch

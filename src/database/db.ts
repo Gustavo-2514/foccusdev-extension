@@ -55,7 +55,7 @@ export class LocalDatabase {
     fs.writeFileSync(this.dbPath, buffer);
   }
 
-  public getOldestHeartbeats() {
+  public getOldestHeartbeats(): Heartbeat[] {
     const result = this.db.exec(`
       SELECT id, timestamp, filePath, language, project, editor, branch, os, source
       FROM heartbeats
@@ -63,9 +63,11 @@ export class LocalDatabase {
       LIMIT 50
     `);
 
-    if (!result[0]) return [];
+    if (!result[0]) {
+      return [];
+    }
 
-    let hbs = result[0].values.map((row: any[]) => ({
+    const hbs = result[0].values.map((row: any[]) => ({
       id: row[0],
       timestamp: row[1],
       filePath: row[2],
@@ -76,16 +78,22 @@ export class LocalDatabase {
       os: row[7],
       source: row[8],
     }));
+
+    return hbs;
   }
 
-  public getAllHeartbeats() {
+  public getAllHeartbeats(): Heartbeat[] {
     const result = this.db.exec(`
       SELECT id, timestamp, filePath, language, project, editor, branch, os, source
       FROM heartbeats
       ORDER BY timestamp ASC
     `);
 
-    let hbs = result[0].values.map((row: any[]) => ({
+    if (!result[0]) {
+      return [];
+    }
+
+    const hbs = result[0].values.map((row: any[]) => ({
       id: row[0],
       timestamp: row[1],
       filePath: row[2],

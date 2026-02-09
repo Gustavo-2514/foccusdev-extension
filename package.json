@@ -11,7 +11,8 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onDidChangeTextDocument"
+    "onDidChangeTextDocument",
+    "onView:foccusdevView"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -24,7 +25,26 @@
         "command": "foccusdev.setApiKey",
         "title": "FoccusDEV: Set Apy Key"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "foccusdev",
+          "title": "FoccusDEV",
+          "icon": "src/media/foccusdev.svg"
+        }
+      ]
+    },
+    "views": {
+      "foccusdev": [
+        {
+          "id": "foccusdevView",
+          "type": "webview",
+          "name": "Painel",
+          "icon": "src/media/foccusdev.svg"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
