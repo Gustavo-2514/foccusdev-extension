@@ -39,6 +39,21 @@ const toSafeLabel = (
   return text.length > 0 ? text : fallback;
 };
 
+const toFolderAndFile = (filePath: string): string => {
+  const normalized = filePath.replace(/\\/g, "/");
+  const parts = normalized.split("/").filter((part) => part.length > 0);
+
+  if (parts.length === 0) {
+    return "Sem arquivo";
+  }
+
+  if (parts.length === 1) {
+    return parts[0];
+  }
+
+  return `${parts[parts.length - 2]}/${parts[parts.length - 1]}`;
+};
+
 const truncateMiddle = (value: string, maxLength: number): string => {
   if (value.length <= maxLength) {
     return value;
@@ -359,7 +374,7 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
   );
   const topFile = topOne(
     groupDurationBy(featuredProjectHeartbeats, (heartbeat) =>
-      toSafeLabel(heartbeat.filePath, "Sem arquivo"),
+      toFolderAndFile(toSafeLabel(heartbeat.filePath, "Sem arquivo")),
     ),
   );
   const topLanguage = topOne(
@@ -390,7 +405,7 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
       ),
       topFile: topOne(
         groupDurationBy(dayHeartbeats, (heartbeat) =>
-          toSafeLabel(heartbeat.filePath, "Sem arquivo"),
+          toFolderAndFile(toSafeLabel(heartbeat.filePath, "Sem arquivo")),
         ),
       ),
       topProject: topOne(
