@@ -37,8 +37,9 @@ export const flushHeartbeat = async ({ state }: { state: ActivityState }) => {
     const DB = LocalDatabase.get();
     const heartbeats = state.heartbeatBufferData;
     DB.insertHeartbeat(heartbeats);
+    state.markFlushed();
     
   } catch (error) {
-    return false;
+    return;
   }
 };

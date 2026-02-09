@@ -2,7 +2,7 @@ import { EventType } from "../types/types";
 
 export const INACTIVITY_LIMIT = 120000; // 120s
 export const DEBOUNCEMS = 600; // 0.6s
-export const FLUSHTIME = 30000; // 30s
+export const FLUSHTIME = 60000; // 1m
 
 // string constants
 export const PUBLIC_API_URL = "";

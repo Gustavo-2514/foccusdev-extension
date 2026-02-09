@@ -34,9 +34,10 @@ export const registerActivity = async (
     }
 
     const flushTimeExceeded = state.shouldFlush();
-    if (flushTimeExceeded) {
+    if (flushTimeExceeded && state.heartbeatBufferData.length > 0) {
       await flushHeartbeat({ state });
     }
+
   } finally {
     state.markActivity();
   }
