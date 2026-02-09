@@ -55,14 +55,6 @@ export class LocalDatabase {
     fs.writeFileSync(this.dbPath, buffer);
   }
 
-  public hasPendingHeartbeats(): boolean {
-    const result = this.db.exec(`SELECT COUNT(*) FROM heartbeats`);
-    if (!result.length) return false;
-
-    const count = Number(result[0].values[0][0] ?? 0);
-    return count > 0;
-  }
-
   public getOldestHeartbeats() {
     const result = this.db.exec(`
       SELECT id, timestamp, filePath, language, project, editor, branch, os, source
@@ -86,7 +78,7 @@ export class LocalDatabase {
     }));
   }
 
-  public insertHeartbeat(hb: Heartbeat) {
+  public insertHeartbeat(heartbeats: Heartbeat[]) {
     const stmt = this.db.prepare(`
       INSERT OR IGNORE INTO heartbeats (
         id,
@@ -101,17 +93,19 @@ export class LocalDatabase {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run([
-      hb.id,
-      hb.timestamp,
-      hb.filePath,
-      hb.language,
-      hb.project,
-      hb.editor,
-      hb.branch,
-      hb.os,
-      hb.source,
-    ]);
+    for (const hb of heartbeats) {
+      stmt.run([
+        hb.id,
+        hb.timestamp,
+        hb.filePath,
+        hb.language,
+        hb.project,
+        hb.editor,
+        hb.branch,
+        hb.os,
+        hb.source,
+      ]);
+    }
 
     stmt.free();
     this.save();
