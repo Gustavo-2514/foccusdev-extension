@@ -78,6 +78,27 @@ export class LocalDatabase {
     }));
   }
 
+  public getAllHeartbeats() {
+    const result = this.db.exec(`
+      SELECT id, timestamp, filePath, language, project, editor, branch, os, source
+      FROM heartbeats
+      ORDER BY timestamp ASC
+    `);
+
+    let hbs = result[0].values.map((row: any[]) => ({
+      id: row[0],
+      timestamp: row[1],
+      filePath: row[2],
+      language: row[3],
+      project: row[4],
+      editor: row[5],
+      branch: row[6],
+      os: row[7],
+      source: row[8],
+    }));
+    return hbs;
+  }
+
   public insertHeartbeat(heartbeats: Heartbeat[]) {
     const stmt = this.db.prepare(`
       INSERT OR IGNORE INTO heartbeats (

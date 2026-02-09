@@ -96,8 +96,6 @@ export class ActivityState {
   }
 
   public shouldDebounce(): boolean {
-    console.log('debounced');
-    
     const now = Date.now();
     if (now - this.lastRegister < DEBOUNCEMS) return true;
     this.lastRegister = now;
@@ -118,7 +116,6 @@ export class ActivityState {
   public pushHeartbeat(hb: Heartbeat) {
     this.lastHeartbeat = hb;
     this.heartbeatBuffer.push(hb);
-    console.log(this.lastHeartbeat);
   }
 
   public schedule(fn: () => Promise<void>, delay: number) {
@@ -134,7 +131,8 @@ export class ActivityState {
   }
 
   public shouldFlush() {
-    return Date.now() - this.lastSent > FLUSHTIME;
+    const flushTimeExceeded = Date.now() - this.lastSent > FLUSHTIME;
+    return flushTimeExceeded;
   }
 
   public markFlushed() {
@@ -148,8 +146,6 @@ export class ActivityState {
 
   public compareSources(sourceDetected: SourceType): boolean {
     let value = this.lastHeartbeat!.source !== sourceDetected;
-    console.log('differentSources: ',value);
-
     return value;
   }
 }
