@@ -3,10 +3,8 @@ const { v4: uuidv4 } = require("uuid");
 
 import { getProjectName } from "./get-values.js";
 import { Heartbeat, SourceType } from "../types/types.js";
-import { PUBLIC_API_URL } from "./const.js";
-import { getApiKey } from "./utils.js";
-import { ExtensionContext } from "vscode";
 import { ActivityState } from "../activity-state.js";
+import { LocalDatabase } from "../database/db.js";
 
 export const createHeartbeat = ({
   state,
@@ -34,28 +32,12 @@ export const createHeartbeat = ({
   state.pushHeartbeat(heartbeat);
 };
 
-export const flushHeartbeat = async (
-  context: ExtensionContext,
-  { state }: { state: ActivityState },
-) => {
+export const flushHeartbeat = async ({ state }: { state: ActivityState }) => {
   try {
-    // example request
-    // const apiKey = await getApiKey(context);
-    // if (!apiKey) return false;
-    // const response = await fetch(PUBLIC_API_URL, {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     "x-api-key": apiKey,
-    //   },
-    //   method: "POST",
-    //   body: JSON.stringify(state.heartbeatBuffer),
-    // });
-    // if (response.ok) {
-    //  state.markFlushed();
-    //   return true;
-    // } else {
-    //   return false;
-    // }
+    const DB = LocalDatabase.get();
+    const heartbeats = state.heartbeatBufferData;
+    DB.insertHeartbeat(heartbeats);
+    
   } catch (error) {
     return false;
   }
