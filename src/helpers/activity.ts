@@ -17,7 +17,6 @@ export const registerActivity = async (
     if (!state.hasApiKeySaved()) return;
     if (!state.getRawFileName()) return;
 
-    //if it´s the first initialization
     if (!state.hasHeartbeat()) {
       createHeartbeat({ state });
       return;
@@ -36,7 +35,7 @@ export const registerActivity = async (
 
     const flushTimeExceeded = state.shouldFlush();
     if (flushTimeExceeded) {
-      await flushHeartbeat(context, { state });
+      await flushHeartbeat({ state });
     }
   } finally {
     state.markActivity();

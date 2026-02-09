@@ -2,42 +2,36 @@ import * as vscode from "vscode";
 import { registerActivity } from "./helpers/activity.js";
 import { LocalDatabase } from "./database/db.js";
 import { ActivityState } from "./activity-state.js";
-import { requireApiKey } from "./database/commands/set-api-key.js";
+
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
-  const gitExtension = vscode.extensions.getExtension("vscode.git")?.exports;
-  if (!gitExtension) return;
-
-  const DB = await LocalDatabase.init(context);
-  const state = await ActivityState.init(context);
-
   try {
+    const DB = await LocalDatabase.init(context);
+    const state = await ActivityState.init(context);
     // ----------- COMMANDS -----------
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        "foccusdev.setApiKey",
-        async () => await requireApiKey(context, state),
-      ),
-    );
+   
 
     // ----------- EVENTS -----------
     // triggered when the user changes the git branch
-    const git = gitExtension.getAPI(1);
-    git.repositories.forEach((repo: any) => {
-      repo.state.onDidChange(async () => {
-        const currentBranch = repo.state.HEAD?.name;
-        const stateBranch = state.getCurrentBranch();
+    const gitExtension = vscode.extensions.getExtension("vscode.git")?.exports;
+    if (gitExtension) {
+      const git = gitExtension.getAPI(1);
+      git.repositories.forEach((repo: any) => {
+        repo.state.onDidChange(async () => {
+          const currentBranch = repo.state.HEAD?.name;
+          const stateBranch = state.getCurrentBranch();
 
-        if (stateBranch === "") {
+          if (stateBranch === "") {
+            state.setCurrentBranch(currentBranch || "");
+            return;
+          } else if (currentBranch === stateBranch) return;
+
           state.setCurrentBranch(currentBranch || "");
-          return;
-        } else if (currentBranch === stateBranch) return;
-
-        state.setCurrentBranch(currentBranch || "");
-        await registerActivity(context, { eventType: "branchChange", state });
+          await registerActivity(context, { eventType: "branchChange", state });
+        });
       });
-    });
+    }
 
     const listeners: vscode.Disposable[] = [];
     listeners.push(
@@ -50,7 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
         await registerActivity(context, {
           eventType: "changeInFile",
           state,
-          source:"human"
+          source: "human",
         });
       }),
 
@@ -68,7 +62,10 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.onDidChangeTextEditorVisibleRanges(async (editor) => {
         if (!editor) return;
         state.setFullFileName(editor.textEditor.document.fileName);
-        await registerActivity(context, { eventType: "screenScrolling", state });
+        await registerActivity(context, {
+          eventType: "screenScrolling",
+          state,
+        });
       }),
 
       // triggered when the user moves the cursor, selects text
