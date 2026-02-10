@@ -6,9 +6,7 @@ export interface Heartbeat {
   filePath: string;
   language: string;
   project: string;
-  editor: string;
   branch: string;
-  os: string;
   source: SourceType;
 }
 

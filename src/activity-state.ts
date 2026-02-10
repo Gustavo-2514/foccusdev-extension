@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import path from "path";
 import { Heartbeat, SourceType } from "./types/types";
-import { getEditorName, getOSName } from "./helpers/get-values";
 import {
   API_KEY_DISMISSED,
   DEBOUNCEMS,
@@ -21,8 +20,6 @@ export class ActivityState {
   private hasApiKey: boolean = false;
   // private lastSource: string = "";
   private fullFileName: string = "";
-  private os: string = getOSName();
-  private editor: string = getEditorName();
   private currentBranch: string = "";
 
   private constructor() {}
@@ -66,13 +63,6 @@ export class ActivityState {
 
   public get heartbeatBufferData() {
     return this.heartbeatBuffer;
-  }
-
-  public getPermanentValues() {
-    return {
-      os: this.os,
-      editor: this.editor,
-    };
   }
 
   public getRawFileName() {

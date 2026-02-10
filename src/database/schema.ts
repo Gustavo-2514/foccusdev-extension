@@ -5,9 +5,7 @@ const schema = `
     filePath TEXT NOT NULL,
     language TEXT NOT NULL,
     project TEXT,
-    editor TEXT NOT NULL,
     branch TEXT,
-    os TEXT NOT NULL,
     source TEXT NOT NULL CHECK (source IN ('human', 'ai', 'debugging'))
 );
 

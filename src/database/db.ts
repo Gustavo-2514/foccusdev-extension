@@ -94,7 +94,7 @@ export class LocalDatabase {
 
   public getOldestHeartbeats(): Heartbeat[] {
     const result = this.db.exec(`
-      SELECT id, timestamp, filePath, language, project, editor, branch, os, source
+      SELECT id, timestamp, filePath, language, project, branch, source
       FROM heartbeats
       ORDER BY timestamp ASC
       LIMIT 50
@@ -110,10 +110,8 @@ export class LocalDatabase {
       filePath: row[2],
       language: row[3],
       project: row[4],
-      editor: row[5],
-      branch: row[6],
-      os: row[7],
-      source: row[8],
+      branch: row[5],
+      source: row[6],
     }));
 
     return hbs;
@@ -121,7 +119,7 @@ export class LocalDatabase {
 
   public getAllHeartbeats(): Heartbeat[] {
     const result = this.db.exec(`
-      SELECT id, timestamp, filePath, language, project, editor, branch, os, source
+      SELECT id, timestamp, filePath, language, project, branch, source
       FROM heartbeats
       ORDER BY timestamp ASC
     `);
@@ -136,10 +134,8 @@ export class LocalDatabase {
       filePath: row[2],
       language: row[3],
       project: row[4],
-      editor: row[5],
-      branch: row[6],
-      os: row[7],
-      source: row[8],
+      branch: row[5],
+      source: row[6],
     }));
     return hbs;
   }
@@ -152,11 +148,9 @@ export class LocalDatabase {
         filePath,
         language,
         project,
-        editor,
         branch,
-        os,
         source
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     for (const hb of heartbeats) {
@@ -166,9 +160,7 @@ export class LocalDatabase {
         hb.filePath,
         hb.language,
         hb.project,
-        hb.editor,
         hb.branch,
-        hb.os,
         hb.source,
       ]);
     }

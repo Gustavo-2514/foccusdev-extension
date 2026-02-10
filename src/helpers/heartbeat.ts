@@ -15,16 +15,13 @@ export const createHeartbeat = ({
 }) => {
   const filePath = state.getNormalizedFilePath();
   const language = path.extname(filePath).replace(".", "");
-  const { editor, os } = state.getPermanentValues();
 
   const heartbeat: Heartbeat = {
     id: uuidv4(),
     language,
     filePath,
     branch: state.getCurrentBranch(),
-    editor: editor,
     project: getProjectName(),
-    os: os,
     timestamp: Math.floor(Date.now() / 1000),
     source: source || "human",
   } satisfies Heartbeat;
@@ -38,6 +35,7 @@ export const flushHeartbeat = async ({ state }: { state: ActivityState }) => {
     const heartbeats = state.heartbeatBufferData;
     DB.insertHeartbeat(heartbeats);
     state.markFlushed();
+    console.log('salvei no db');
     
   } catch (error) {
     return;

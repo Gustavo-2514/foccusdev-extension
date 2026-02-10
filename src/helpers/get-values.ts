@@ -13,6 +13,7 @@ export const getBranchName = async (): Promise<string> => {
   }
 };
 
+// ----- no use yet -----
 export const getEditorName = (): string => {
   const editor = vscode.env.appName.toLowerCase();
   if (editor.includes("code")) return "VS Code";
@@ -33,6 +34,7 @@ export const getProjectName = (): string => {
   return folder ? folder.name : "Sem projeto";
 };
 
+// no use yet
 export const getOSName = (): string => {
   switch (platform()) {
     case "darwin":
