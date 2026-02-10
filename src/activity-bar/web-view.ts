@@ -164,7 +164,8 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
 
     const db = LocalDatabase.get();
     const heartbeats = db.getAllHeartbeats();
-    const dashboardHtml = getDashboardHtml(heartbeats);
+    const maxSizeMb = this.getConfiguredMaxDbSizeMb();
+    const dashboardHtml = getDashboardHtml(heartbeats, { dbMaxSizeMb: maxSizeMb });
 
     this.dashboardCache = {
       html: dashboardHtml,
@@ -336,6 +337,11 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
+            margin: 0px 5px;
+          }
+
+          .details-grid-spaced {
+            margin-top: 10px;
           }
 
           .metric {

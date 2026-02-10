@@ -1,12 +1,16 @@
 import {
   DAY_LABELS,
   EFFECTIVE_HEARTBEAT_SECONDS_LIMIT,
-  INACTIVITY_LIMIT,
-  MAXIMUM_TIME_LIMIT_PER_HEARTBEAT,
   MINIMUM_DISPLAY_SECONDS,
   TRAILING_HEARTBEAT_SECONDS,
 } from "../helpers/const.js";
 import { DayInsight, Heartbeat, RankedItem, TimedHeartbeat } from "../types/types.js";
+
+interface DashboardRenderOptions {
+  dbMaxSizeMb?: number;
+}
+
+const DAY_IN_MS = 86_400_000;
 
 const escapeHtml = (value: string): string => {
   return value
@@ -65,6 +69,14 @@ const formatDuration = (seconds: number): string => {
   return `${hours}h ${restMinutes}m`;
 };
 
+const formatDate = (timestampMs: number): string => {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(timestampMs));
+};
+
 const startOfDay = (date: Date): Date => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 };
@@ -80,6 +92,17 @@ const startOfWeek = (date: Date): Date => {
   const weekDay = dayStart.getDay();
   const daysSinceMonday = weekDay === 0 ? 6 : weekDay - 1;
   return addDays(dayStart, -daysSinceMonday);
+};
+
+const calculateCoverageDays = (startMs: number, endMs: number): number => {
+  const startDayMs = startOfDay(new Date(startMs)).getTime();
+  const endDayMs = startOfDay(new Date(endMs)).getTime();
+
+  if (endDayMs < startDayMs) {
+    return 1;
+  }
+
+  return Math.floor((endDayMs - startDayMs) / DAY_IN_MS) + 1;
 };
 
 const buildTimedHeartbeats = (heartbeats: Heartbeat[]): TimedHeartbeat[] => {
@@ -272,8 +295,12 @@ const renderComparison = (
   return `${signal}${percent.toFixed(1)}% vs semana atual`;
 };
 
-export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
+export const getDashboardHtml = (
+  heartbeats: Heartbeat[],
+  options: DashboardRenderOptions = {},
+): string => {
   const timedHeartbeats = buildTimedHeartbeats(heartbeats);
+  const orderedHeartbeats = [...heartbeats].sort((a, b) => a.timestamp - b.timestamp);
   const now = new Date();
   const nowMs = now.getTime() + 1000;
 
@@ -310,6 +337,21 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
     weekStart.getTime(),
   );
 
+  const hasData = orderedHeartbeats.length > 0;
+  const oldestTimestampMs = hasData ? orderedHeartbeats[0].timestamp * 1000 : null;
+  const newestTimestampMs = hasData
+    ? orderedHeartbeats[orderedHeartbeats.length - 1].timestamp * 1000
+    : null;
+  const allDataCoverageDays =
+    hasData && oldestTimestampMs !== null
+      ? calculateCoverageDays(oldestTimestampMs, now.getTime())
+      : 1;
+  const projectLookbackDays = Math.max(1, allDataCoverageDays);
+  const projectLookbackStart = addDays(
+    startOfDay(now),
+    -(projectLookbackDays - 1),
+  );
+
   const lastWeekDays = Array.from({ length: 7 }, (_, index) => {
     const dayStart = addDays(lastWeekStart, index);
     const dayEnd = addDays(dayStart, 1);
@@ -325,6 +367,11 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
     monthStart.getTime(),
     nowMs,
   );
+  const projectLookbackHeartbeats = filterByRange(
+    timedHeartbeats,
+    projectLookbackStart.getTime(),
+    nowMs,
+  );
 
   const topLanguages = topRanked(
     groupDurationBy(monthHeartbeats, (heartbeat) =>
@@ -338,6 +385,38 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
     ),
     3,
   );
+  const topAllTimeLanguages = topRanked(
+    groupDurationBy(timedHeartbeats, (heartbeat) =>
+      toSafeLabel(heartbeat.language, "Sem linguagem").toUpperCase(),
+    ),
+    5,
+  );
+  const topProjectsLookback = topRanked(
+    groupDurationBy(projectLookbackHeartbeats, (heartbeat) =>
+      toSafeLabel(heartbeat.project, "Sem projeto"),
+    ),
+    5,
+  );
+  const totalTrackedSeconds = timedHeartbeats.reduce((acc, heartbeat) => {
+    return acc + heartbeat.durationSeconds;
+  }, 0);
+  const totalTrackedDays = new Set(
+    timedHeartbeats.map((heartbeat) => {
+      return startOfDay(new Date(heartbeat.timestamp * 1000)).getTime();
+    }),
+  ).size;
+  const databasePeriodLabel =
+    hasData && oldestTimestampMs !== null && newestTimestampMs !== null
+      ? `${formatDate(oldestTimestampMs)} até ${formatDate(newestTimestampMs)}`
+      : "Sem período registrado";
+  const configuredDbLimitMb =
+    typeof options.dbMaxSizeMb === "number" && Number.isFinite(options.dbMaxSizeMb)
+      ? Math.round(options.dbMaxSizeMb)
+      : null;
+  const configuredDbLimitLabel =
+    configuredDbLimitMb !== null
+      ? `${configuredDbLimitMb} MB`
+      : "limite configurado";
 
   const featuredProjectMetric = topOne(
     groupDurationBy(monthHeartbeats, (heartbeat) =>
@@ -470,6 +549,35 @@ export const getDashboardHtml = (heartbeats: Heartbeat[]): string => {
         <div class="week-grid">
           ${renderWeekDays(weekInsights)}
         </div>
+      </article>
+
+      <article class="card span-2">
+        <h2 class="card-title">Métricas gerais do banco</h2>
+        <p class="muted">Aviso: essas métricas tendem a mudar com base no tamanho limite do banco (${configuredDbLimitLabel}).</p>
+        <div class="details-grid">
+          ${renderMetric("Tempo total (banco)", formatDuration(totalTrackedSeconds))}
+          ${renderMetric("Heartbeats salvos", `${heartbeats.length}`)}
+          ${renderMetric("Dias com atividade", `${totalTrackedDays}`)}
+          ${renderMetric("Janela de dados", `${allDataCoverageDays} dias`)}
+        </div>
+        <div class="details-grid details-grid-spaced">
+          <div class="metric">
+            <p class="metric-label">Top 5 linguagens (banco)</p>
+            <ul class="list">
+              ${renderRankList(topAllTimeLanguages, "Sem linguagem registrada no banco")}
+            </ul>
+          </div>
+          <div class="metric">
+            <p class="metric-label">Top 5 projetos (últimos ${projectLookbackDays} dias)</p>
+            <ul class="list">
+              ${renderRankList(
+                topProjectsLookback,
+                `Sem projetos registrados nos últimos ${projectLookbackDays} dias`,
+              )}
+            </ul>
+          </div>
+        </div>
+        <p class="muted">Período analisado no banco: ${escapeHtml(databasePeriodLabel)}.</p>
       </article>
     </div>
   `;
