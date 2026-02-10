@@ -674,6 +674,37 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
             font-weight: 700;
           }
 
+          .docs-page.is-active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 28px);
+          }
+
+          .docs-card {
+            width: min(100%, 560px);
+            text-align: center;
+          }
+
+          .docs-text {
+            margin: 0;
+            color: #c9cfda;
+            line-height: 1.5;
+          }
+
+          .docs-action {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+          }
+
+          .docs-button {
+            width: auto;
+            text-decoration: none;
+            justify-content: center;
+            min-width: 220px;
+          }
+
           .loading-wrapper {
             display: none;
             align-items: center;
@@ -806,13 +837,20 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
               </div>
             </section>
 
-            <section id="docs-page" class="page">
-              <article class="card">
+            <section id="docs-page" class="page docs-page">
+              <article class="card docs-card">
                 <h2 class="card-title">Documentação</h2>
-                <p class="muted">
-                  Centralize aqui links e guias da extensão.
-                  <a class="external-link" href="https://github.com/" target="_blank" rel="noreferrer">Abrir documentação</a>
-                </p>
+                <p class="docs-text">Para entender melhor como a extensão funciona ou contribuir com o projeto, acesse o repositório oficial no GitHub.</p>
+                <div class="docs-action">
+                  <a
+                    class="nav-button docs-button"
+                    href="https://github.com/Gustavo-2514/foccusdev-extension"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Acessar no GitHub
+                  </a>
+                </div>
               </article>
             </section>
           </section>
