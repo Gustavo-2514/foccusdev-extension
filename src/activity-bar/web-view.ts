@@ -360,6 +360,7 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
 
           .details-grid-spaced {
             margin-top: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
           }
 
           .metric {
@@ -410,12 +411,14 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
             border: 1px solid #475264;
             border-radius: 8px;
             padding: 8px 10px;
+            min-width: 0;
           }
 
           .item-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
             color: #ffffff;
           }
 
