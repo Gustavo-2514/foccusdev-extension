@@ -5,8 +5,6 @@ export const INACTIVITY_LIMIT = 90000; // 90s
 export const MAXIMUM_TIME_LIMIT_PER_HEARTBEAT = 120000; // 120s (Each heartbeat should be a maximum of 2 minutes)
 export const DEBOUNCEMS = 600; // 0.6s
 export const FLUSHTIME = 60000; // 60s - 1m
-export const PUBLIC_API_URL = "";
-export const API_KEY_DISMISSED = "apiKeyDismissed";
 
 export const DB_MAX_SIZE_SETTING_KEY = "dbMaxSizeMb";
 export const DB_MAX_SIZE_MIN_MB = 15; // 15mb

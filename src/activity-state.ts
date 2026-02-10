@@ -2,13 +2,10 @@ import * as vscode from "vscode";
 import path from "path";
 import { Heartbeat, SourceType } from "./types/types";
 import {
-  API_KEY_DISMISSED,
   DEBOUNCEMS,
   FLUSHTIME,
   MAXIMUM_TIME_LIMIT_PER_HEARTBEAT,
 } from "./helpers/const";
-import { getApiKey } from "./helpers/utils";
-import { requireApiKey } from "./database/commands/set-api-key";
 
 export class ActivityState {
   private lastActivity: number = 0;
@@ -17,7 +14,6 @@ export class ActivityState {
   private heartbeatBuffer: Heartbeat[] = [];
   private lastRegister = 0;
   private interval: NodeJS.Timeout | null = null;
-  private hasApiKey: boolean = false;
   // private lastSource: string = "";
   private fullFileName: string = "";
   private currentBranch: string = "";
@@ -26,40 +22,9 @@ export class ActivityState {
 
   public static async init(context: vscode.ExtensionContext) {
     const state = new ActivityState();
-    await state.checkApiKey(context, state);
     return state;
   }
 
-  public async checkApiKey(
-    context: vscode.ExtensionContext,
-    state: ActivityState,
-  ) {
-    const dismissed = context.globalState.get<boolean>(API_KEY_DISMISSED);
-    if (dismissed) {
-      return;
-    }
-
-    const { apiKey, hasApiKey } = await getApiKey(context);
-
-    if (hasApiKey) {
-      this.hasApiKey = true;
-      return;
-    }
-
-    const key = await requireApiKey(context, state, apiKey);
-    if (!key) {
-      await context.globalState.update(API_KEY_DISMISSED, true);
-    }
-    return;
-  }
-
-  public hasApiKeySaved() {
-    return this.hasApiKey;
-  }
-
-  public setApiKey() {
-    this.hasApiKey = true;
-  }
 
   public get heartbeatBufferData() {
     return this.heartbeatBuffer;

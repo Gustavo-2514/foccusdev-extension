@@ -14,7 +14,6 @@ export const registerActivity = async (
 ): Promise<void> => {
   try {
     if (state.shouldDebounce()) return;
-    if (!state.hasApiKeySaved()) return;
     if (!state.getRawFileName()) return;
 
     if (!state.hasHeartbeat()) {

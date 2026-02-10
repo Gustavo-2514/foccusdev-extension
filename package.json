@@ -20,10 +20,6 @@
       {
         "command": "foccusdev.helloWorld",
         "title": "Hello World"
-      },
-      {
-        "command": "foccusdev.setApiKey",
-        "title": "FoccusDEV: Set Apy Key"
       }
     ],
     "viewsContainers": {
