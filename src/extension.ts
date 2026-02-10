@@ -7,6 +7,7 @@ import {
   DB_MAX_SIZE_DEFAULT_MB,
   DB_MAX_SIZE_SETTING_KEY,
 } from "./helpers/const.js";
+import { DailyCodingStatusBar } from "./status-bar/daily-coding-status-bar.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
@@ -20,14 +21,26 @@ export async function activate(context: vscode.ExtensionContext) {
     DB.setMaxDatabaseSizeMb(maxDbSizeMb);
 
     // Webview
+    const webviewProvider = new FoccusWebview(context, state);
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
         "foccusdevView",
-        new FoccusWebview(context, state),
+        webviewProvider,
       ),
     );
 
     // ----------- COMMANDS -----------
+    const openDashboardCommand = vscode.commands.registerCommand(
+      "foccusdev.openDashboard",
+      async () => {
+        await webviewProvider.revealDashboard();
+      },
+    );
+    context.subscriptions.push(openDashboardCommand);
+
+    const dailyCodingStatusBar = new DailyCodingStatusBar();
+    dailyCodingStatusBar.start();
+    context.subscriptions.push(dailyCodingStatusBar);
 
     // ----------- EVENTS -----------
     // triggered when the user changes the git branch

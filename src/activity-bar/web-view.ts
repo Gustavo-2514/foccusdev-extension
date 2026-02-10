@@ -23,6 +23,7 @@ interface WebviewMessage {
 
 export class FoccusWebview implements vscode.WebviewViewProvider {
   private dashboardCache: DashboardCache | null = null;
+  private webviewView: vscode.WebviewView | null = null;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -30,8 +31,14 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
   ) {}
 
   resolveWebviewView(view: vscode.WebviewView) {
+    this.webviewView = view;
     view.webview.options = { enableScripts: true };
     view.webview.html = this.getShellHtml();
+    view.onDidDispose(() => {
+      if (this.webviewView === view) {
+        this.webviewView = null;
+      }
+    });
 
     view.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       if (!message || !message.type) {
@@ -59,6 +66,17 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
           break;
       }
     });
+  }
+
+  public async revealDashboard() {
+    await vscode.commands.executeCommand("workbench.view.extension.foccusdev");
+    await vscode.commands.executeCommand("foccusdevView.focus");
+
+    if (this.webviewView) {
+      await this.webviewView.webview.postMessage({
+        type: "openDashboardPage",
+      });
+    }
   }
 
   private async handleLoadDashboard(view: vscode.WebviewView) {
@@ -1117,6 +1135,13 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
             if (message.type === "dashboardShouldReload") {
               dashboardNeedsReload = true;
               if (isDashboardActive()) {
+                loadDashboard();
+              }
+            }
+
+            if (message.type === "openDashboardPage") {
+              setActivePage("dashboard-page");
+              if (dashboardNeedsReload || dashboardRoot.innerHTML.trim().length === 0) {
                 loadDashboard();
               }
             }

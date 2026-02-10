@@ -140,6 +140,33 @@ export class LocalDatabase {
     return hbs;
   }
 
+  public getHeartbeatsAfterTimestamp(startTimestamp: number): Heartbeat[] {
+    const safeStartTimestamp = Number.isFinite(startTimestamp)
+      ? Math.max(0, Math.floor(startTimestamp))
+      : 0;
+
+    const result = this.db.exec(`
+      SELECT id, timestamp, filePath, language, project, branch, source
+      FROM heartbeats
+      WHERE timestamp >= ${safeStartTimestamp}
+      ORDER BY timestamp ASC
+    `);
+
+    if (!result[0]) {
+      return [];
+    }
+
+    return result[0].values.map((row: any[]) => ({
+      id: row[0],
+      timestamp: row[1],
+      filePath: row[2],
+      language: row[3],
+      project: row[4],
+      branch: row[5],
+      source: row[6],
+    }));
+  }
+
   public insertHeartbeat(heartbeats: Heartbeat[]) {
     const stmt = this.db.prepare(`
       INSERT OR IGNORE INTO heartbeats (
