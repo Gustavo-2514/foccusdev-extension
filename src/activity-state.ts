@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import path from "path";
-import { EventType, Heartbeat, SourceType } from "./types/types";
+import { Heartbeat, SourceType } from "./types/types";
 import { getEditorName, getOSName } from "./helpers/get-values";
 import {
   API_KEY_DISMISSED,
   DEBOUNCEMS,
   FLUSHTIME,
-  INACTIVITY_LIMIT,
+  MAXIMUM_TIME_LIMIT_PER_HEARTBEAT,
 } from "./helpers/const";
 import { getApiKey } from "./helpers/utils";
 import { requireApiKey } from "./database/commands/set-api-key";
@@ -105,7 +105,7 @@ export class ActivityState {
   public exceededHBLimit(): boolean {
     const now = Date.now();
     return (
-      now - (this.lastHeartbeat?.timestamp ?? 0) * 1000 >= INACTIVITY_LIMIT
+      now - (this.lastHeartbeat?.timestamp ?? 0) * 1000 >= MAXIMUM_TIME_LIMIT_PER_HEARTBEAT
     );
   }
 
@@ -116,6 +116,8 @@ export class ActivityState {
   public pushHeartbeat(hb: Heartbeat) {
     this.lastHeartbeat = hb;
     this.heartbeatBuffer.push(hb);
+    console.log('criei e salvei db no state');
+    
   }
 
   public schedule(fn: () => Promise<void>, delay: number) {
@@ -147,5 +149,13 @@ export class ActivityState {
   public compareSources(sourceDetected: SourceType): boolean {
     let value = this.lastHeartbeat!.source !== sourceDetected;
     return value;
+  }
+
+  public resetHeartbeatState() {
+    this.clearTimeout();
+    this.lastHeartbeat = null;
+    this.heartbeatBuffer = [];
+    this.lastSent = Date.now();
+    this.lastRegister = 0;
   }
 }

@@ -3,6 +3,11 @@ import * as path from "path";
 import initSqlJs, { Database } from "sql.js";
 import { ExtensionContext } from "vscode";
 import { Heartbeat } from "../types/types";
+import {
+  DB_MAX_SIZE_DEFAULT_MB,
+  DB_MAX_SIZE_MAX_MB,
+  DB_MAX_SIZE_MIN_MB,
+} from "../helpers/const";
 import schema from "./schema";
 
 export class LocalDatabase {
@@ -10,6 +15,7 @@ export class LocalDatabase {
   private db!: Database;
   private dbPath!: string;
   private SQL: any;
+  private maxDatabaseSizeBytes: number = DB_MAX_SIZE_DEFAULT_MB * 1024 * 1024;
 
   private constructor() {}
 
@@ -53,6 +59,37 @@ export class LocalDatabase {
     const data = this.db.export();
     const buffer = Buffer.from(data);
     fs.writeFileSync(this.dbPath, buffer);
+  }
+
+  public setMaxDatabaseSizeMb(maxSizeMb: number) {
+    const safeMaxSizeMb = this.clampMaxDatabaseSizeMb(maxSizeMb);
+    this.maxDatabaseSizeBytes = safeMaxSizeMb * 1024 * 1024;
+    this.enforceMaxDatabaseSize();
+  }
+
+  public clearAllHeartbeats() {
+    this.resetDatabaseFile();
+  }
+
+  public getDatabaseSizeBytes(): number {
+    try {
+      return fs.statSync(this.dbPath).size;
+    } catch {
+      return 0;
+    }
+  }
+
+  public getHeartbeatCount(): number {
+    const result = this.db.exec(`
+      SELECT COUNT(*) AS total
+      FROM heartbeats
+    `);
+
+    if (!result[0] || !result[0].values[0]) {
+      return 0;
+    }
+
+    return Number(result[0].values[0][0] ?? 0);
   }
 
   public getOldestHeartbeats(): Heartbeat[] {
@@ -138,6 +175,8 @@ export class LocalDatabase {
 
     stmt.free();
     this.save();
+    this.enforceMaxDatabaseSize();
+    console.log('salvei no db');
   }
 
   public deleteHeartbeatsByIds(ids: string[]) {
@@ -153,5 +192,82 @@ export class LocalDatabase {
       this.save();
       this.db.close();
     }
+  }
+
+  private clampMaxDatabaseSizeMb(sizeMb: number): number {
+    if (!Number.isFinite(sizeMb)) {
+      return DB_MAX_SIZE_DEFAULT_MB;
+    }
+
+    const normalized = Math.round(sizeMb);
+    return Math.min(DB_MAX_SIZE_MAX_MB, Math.max(DB_MAX_SIZE_MIN_MB, normalized));
+  }
+
+  private enforceMaxDatabaseSize() {
+    if (this.maxDatabaseSizeBytes <= 0) {
+      return;
+    }
+
+    let currentSize = this.getDatabaseSizeBytes();
+    let attempts = 0;
+
+    while (currentSize > this.maxDatabaseSizeBytes && attempts < 200) {
+      const deletedCount = this.deleteOldestHeartbeatsBatch(500);
+      if (deletedCount === 0) {
+        break;
+      }
+
+      this.save();
+      currentSize = this.getDatabaseSizeBytes();
+      attempts += 1;
+    }
+  }
+
+  private deleteOldestHeartbeatsBatch(limit: number): number {
+    const safeLimit = Math.max(1, Math.floor(limit));
+    const result = this.db.exec(`
+      SELECT id
+      FROM heartbeats
+      ORDER BY timestamp ASC
+      LIMIT ${safeLimit}
+    `);
+
+    if (!result[0]) {
+      return 0;
+    }
+
+    const ids = result[0].values
+      .map((row: any[]) => String(row[0]))
+      .filter((id) => id.length > 0);
+
+    if (ids.length === 0) {
+      return 0;
+    }
+
+    const placeholders = ids.map(() => "?").join(",");
+    this.db.run(`DELETE FROM heartbeats WHERE id IN (${placeholders})`, ids);
+    return ids.length;
+  }
+
+  private resetDatabaseFile() {
+    try {
+      if (this.db) {
+        this.db.close();
+      }
+    } catch {
+      // no-op
+    }
+
+    try {
+      if (fs.existsSync(this.dbPath)) {
+        fs.unlinkSync(this.dbPath);
+      }
+    } catch {
+      // no-op
+    }
+
+    this.db = new this.SQL.Database();
+    this.db.exec(schema);
+    this.save();
   }
 }

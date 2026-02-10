@@ -3,19 +3,28 @@ import { registerActivity } from "./helpers/activity.js";
 import { LocalDatabase } from "./database/db.js";
 import { ActivityState } from "./activity-state.js";
 import { FoccusWebview } from "./activity-bar/web-view.js";
+import {
+  DB_MAX_SIZE_DEFAULT_MB,
+  DB_MAX_SIZE_SETTING_KEY,
+} from "./helpers/const.js";
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("✅ Extension activated successfully!");
   try {
     const DB = await LocalDatabase.init(context);
     const state = await ActivityState.init(context);
+    const maxDbSizeMb = context.globalState.get<number>(
+      DB_MAX_SIZE_SETTING_KEY,
+      DB_MAX_SIZE_DEFAULT_MB,
+    );
+    DB.setMaxDatabaseSizeMb(maxDbSizeMb);
 
 
     // Webview
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
         "foccusdevView",
-        new FoccusWebview(),
+        new FoccusWebview(context, state),
       ),
     );
 

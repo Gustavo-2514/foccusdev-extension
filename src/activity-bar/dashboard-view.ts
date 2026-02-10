@@ -1,26 +1,12 @@
-import { INACTIVITY_LIMIT } from "../helpers/const.js";
-import { Heartbeat } from "../types/types.js";
-
-interface TimedHeartbeat extends Heartbeat {
-  durationSeconds: number;
-}
-
-interface RankedItem {
-  label: string;
-  seconds: number;
-}
-
-interface DayInsight {
-  dayLabel: string;
-  totalSeconds: number;
-  topLanguage: RankedItem | null;
-  topFile: RankedItem | null;
-  topProject: RankedItem | null;
-}
-
-const MAX_SESSION_GAP_SECONDS = Math.floor(INACTIVITY_LIMIT / 1000);
-const TRAILING_HEARTBEAT_SECONDS = 60;
-const DAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
+import {
+  DAY_LABELS,
+  EFFECTIVE_HEARTBEAT_SECONDS_LIMIT,
+  INACTIVITY_LIMIT,
+  MAXIMUM_TIME_LIMIT_PER_HEARTBEAT,
+  MINIMUM_DISPLAY_SECONDS,
+  TRAILING_HEARTBEAT_SECONDS,
+} from "../helpers/const.js";
+import { DayInsight, Heartbeat, RankedItem, TimedHeartbeat } from "../types/types.js";
 
 const escapeHtml = (value: string): string => {
   return value
@@ -65,15 +51,11 @@ const truncateMiddle = (value: string, maxLength: number): string => {
 };
 
 const formatDuration = (seconds: number): string => {
-  if (seconds <= 0) {
+  if (seconds < MINIMUM_DISPLAY_SECONDS) {
     return "0m";
   }
 
   const minutes = Math.floor(seconds / 60);
-  if (minutes === 0) {
-    return "1m";
-  }
-
   const hours = Math.floor(minutes / 60);
   const restMinutes = minutes % 60;
   if (hours === 0) {
@@ -113,7 +95,7 @@ const buildTimedHeartbeats = (heartbeats: Heartbeat[]): TimedHeartbeat[] => {
         if (delta <= 0) {
           durationSeconds = 0;
         } else {
-          durationSeconds = Math.min(delta, MAX_SESSION_GAP_SECONDS);
+          durationSeconds = Math.min(delta, EFFECTIVE_HEARTBEAT_SECONDS_LIMIT);
         }
       }
 
@@ -153,6 +135,7 @@ const groupDurationBy = (
 
 const topRanked = (grouped: Map<string, number>, limit: number): RankedItem[] => {
   return [...grouped.entries()]
+    .filter(([, seconds]) => seconds >= MINIMUM_DISPLAY_SECONDS)
     .map(([label, seconds]) => ({ label, seconds }))
     .sort((a, b) => b.seconds - a.seconds)
     .slice(0, limit);

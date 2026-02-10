@@ -29,3 +29,21 @@ export type EventType =
   | "switchFile"
   | "cursorMove"
   | "branchChange";
+
+
+export interface TimedHeartbeat extends Heartbeat {
+  durationSeconds: number;
+}
+
+export interface RankedItem {
+  label: string;
+  seconds: number;
+}
+
+export interface DayInsight {
+  dayLabel: string;
+  totalSeconds: number;
+  topLanguage: RankedItem | null;
+  topFile: RankedItem | null;
+  topProject: RankedItem | null;
+}
