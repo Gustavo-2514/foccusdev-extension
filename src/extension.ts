@@ -19,7 +19,6 @@ export async function activate(context: vscode.ExtensionContext) {
     );
     DB.setMaxDatabaseSizeMb(maxDbSizeMb);
 
-
     // Webview
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
@@ -30,11 +29,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // ----------- COMMANDS -----------
 
-
     // ----------- EVENTS -----------
     // triggered when the user changes the git branch
-    const gitExtension = vscode.extensions.getExtension("vscode.git")?.exports;
-    if (gitExtension) {
+    const gitExt = vscode.extensions.getExtension("vscode.git");
+    if (gitExt) {
+      if (!gitExt.isActive) {
+        await gitExt.activate();
+      }
+      const gitExtension = gitExt.exports;
       const git = gitExtension.getAPI(1);
       git.repositories.forEach((repo: any) => {
         repo.state.onDidChange(async () => {
