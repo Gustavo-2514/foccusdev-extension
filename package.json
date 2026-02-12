@@ -3,8 +3,8 @@
   "publisher": "gustavo-2514",
   "displayName": "FoccusDEV",
   "description": "Monitora e gerencia o tempo gasto codificando, te dando total controle sobre o seu tempo na programação",
-  "version": "1.0.0",
-  "icon": "src/media/foccusdev.png",
+  "version": "1.0.1",
+  "icon": "src/media/foccusdev-logo.webp",
   "license": "MIT",
   "repository": {
     "type": "git",

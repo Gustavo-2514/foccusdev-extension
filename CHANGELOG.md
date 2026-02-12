@@ -2,6 +2,12 @@
 
 All relevant changes to the **foccusdev** extension will be documented here.
 
+## [1.0.1] - 12/02/2026
+
+### Added
+
+- add new icon image
+
 ## [1.0.0] - 12/02/2026
 
 ### Added
