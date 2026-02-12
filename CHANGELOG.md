@@ -1,9 +1,16 @@
-# Change Log
+# Changelog
 
-All notable changes to the "foccusdev" extension will be documented in this file.
+All relevant changes to the **foccusdev** extension will be documented here.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [1.0.0] - 12/02/2026
 
-## [Unreleased]
+### Added
 
-- Initial release
+- First changelog
+- Dashboard with metrics for today, yesterday, week, and month.
+- Comparison with the previous week.
+- Ranking of languages ​​and projects by code time.
+- Weekly view with breakdown by language, file, and project.
+- Status bar with daily code time and shortcut to the dashboard.
+- Local database limit configuration (15 MB to 100 MB).
+- Action to delete all local history.
