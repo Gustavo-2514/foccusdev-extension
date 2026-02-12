@@ -1,8 +1,29 @@
 {
   "name": "foccusdev",
+  "publisher": "gustavo-2514",
   "displayName": "FoccusDEV",
   "description": "Monitora e gerencia o tempo gasto codificando, te dando total controle sobre o seu tempo na programação",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "icon": "src/media/foccusdev.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gustavo-2514/foccusdev-extension.git"
+  },
+  "homepage": "https://github.com/Gustavo-2514/foccusdev-extension#readme",
+  "bugs": {
+    "url": "https://github.com/Gustavo-2514/foccusdev-extension/issues"
+  },
+  "keywords": [
+    "time-tracking",
+    "productivity",
+    "coding",
+    "dashboard",
+    "developer"
+  ],
+  "author": {
+    "name": "Gustavo Machado Albuquerque"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -18,8 +39,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "foccusdev.helloWorld",
-        "title": "Hello World"
+        "command": "foccusdev.openDashboard",
+        "title": "FoccusDEV: Abrir Painel"
       }
     ],
     "viewsContainers": {
