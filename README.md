@@ -1,71 +1,57 @@
-# foccusdev README
+# FoccusDEV
 
-This is the README for your extension "foccusdev". After writing up a brief description, we recommend including the following sections.
+[English version](README.en.md)
 
-## Features
+FoccusDEV é uma extensão para VS Code que monitora sua atividade de codificação e exibe métricas de produtividade em um painel local.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+![Dashboard - FoccusDEV](src/media/dashboard.png)
 
-For example if there is an image subfolder under your extension project workspace:
+## Recursos
 
-\!\[feature X\]\(images/feature-x.png\)
+- Dashboard com tempo de código de hoje, ontem, semana e mês.
+- Comparativo com a semana passada.
+- Top linguagens e top projetos.
+- Visão por dia da semana com detalhamento por linguagem, arquivo e projeto.
+- Controle de limite do banco local (15 MB a 100 MB).
+- Limpeza total de dados diretamente pela interface.
+- Atalho por status bar para abrir o painel.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Como usar
 
-## Requirements
+1. Instale a extensão.
+2. Abra a barra lateral e clique em **FoccusDEV**.
+3. Navegue entre as abas:
+   - **Dashboard**: métricas de codificação.
+   - **Configurações**: limite do banco local e limpeza de dados.
+   - **Documentação**: link para o repositório.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Você também pode abrir o painel pelo comando:
 
-## Extension Settings
+- `FoccusDEV: Abrir Painel`
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Armazenamento e privacidade
 
-For example:
+- Extensão 100% local, os dados são salvos localmente no armazenamento global da extensão.
+- Nenhum envio para servidor externo é feito pela extensão.
+- A opção de apagar dados remove todo o histórico local. (Tenha certeza antes de excluir)
 
-This extension contributes the following settings:
+## Requisitos
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- VS Code `^1.100.0`
 
-## Known Issues
+## Contribuições
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Contribuições são bem-vindas.
 
-## Release Notes
+1. Faça um fork do repositório.
+2. Crie uma branch para sua alteração.
+3. Faça commit com uma mensagem clara.
+4. Abra um Pull Request descrevendo a mudança.
 
-Users appreciate release notes as you update your extension.
+## Repositório
 
-### 1.0.0
+- Código-fonte e issues: <https://github.com/Gustavo-2514/foccusdev-extension>
 
-Initial release of ...
+## Changelog
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+As mudanças desta extensão estão documentadas em `CHANGELOG.md`.
