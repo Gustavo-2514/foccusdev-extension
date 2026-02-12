@@ -13,8 +13,12 @@ export const registerActivity = async (
   }: { eventType: EventType; state: ActivityState; source?: SourceType },
 ): Promise<void> => {
   try {
-    if (state.shouldDebounce()) return;
-    if (!state.getRawFileName()) return;
+    if (state.shouldDebounce()) {
+      return;
+    }
+    if (!state.getRawFileName()) {
+      return;
+    }
 
     if (!state.hasHeartbeat()) {
       createHeartbeat({ state });

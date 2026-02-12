@@ -44,7 +44,6 @@ export class LocalDatabase {
 
       LocalDatabase.instance = instance;
     }
-    console.log("DB initialized ✅");
     return LocalDatabase.instance;
   }
 
@@ -195,11 +194,12 @@ export class LocalDatabase {
     stmt.free();
     this.save();
     this.enforceMaxDatabaseSize();
-    console.log('salvei no db');
   }
 
   public deleteHeartbeatsByIds(ids: string[]) {
-    if (ids.length === 0) return;
+    if (ids.length === 0) {
+      return;
+    }
 
     const placeholders = ids.map(() => "?").join(",");
     this.db.run(`DELETE FROM heartbeats WHERE id IN (${placeholders})`, ids);

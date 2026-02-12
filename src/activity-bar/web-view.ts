@@ -814,7 +814,7 @@ export class FoccusWebview implements vscode.WebviewViewProvider {
       <body>
         <main class="app">
           <aside class="sidebar">
-            <h1 class="title">FoccuDEV</h1>
+            <h1 class="title">FoccusDEV</h1>
             <nav class="nav" aria-label="Navegação principal">
               <button class="nav-button is-active" data-page="dashboard-page" type="button">Dashboard</button>
               <button class="nav-button" data-page="settings-page" type="button">Configurações</button>

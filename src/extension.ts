@@ -10,7 +10,6 @@ import {
 import { DailyCodingStatusBar } from "./status-bar/daily-coding-status-bar.js";
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log("✅ Extension activated successfully!");
   try {
     const DB = await LocalDatabase.init(context);
     const state = await ActivityState.init(context);
@@ -59,7 +58,9 @@ export async function activate(context: vscode.ExtensionContext) {
           if (stateBranch === "") {
             state.setCurrentBranch(currentBranch || "");
             return;
-          } else if (currentBranch === stateBranch) return;
+          } else if (currentBranch === stateBranch) {
+            return;
+          }
 
           state.setCurrentBranch(currentBranch || "");
           await registerActivity(context, { eventType: "branchChange", state });
@@ -71,8 +72,12 @@ export async function activate(context: vscode.ExtensionContext) {
     listeners.push(
       // triggered when the user types or saves the file
       vscode.workspace.onDidChangeTextDocument(async (event) => {
-        if (!event.document) return;
-        if (event.contentChanges.length === 0) return;
+        if (!event.document) {
+          return;
+        }
+        if (event.contentChanges.length === 0) {
+          return;
+        }
 
         state.setFullFileName(event.document.fileName);
         await registerActivity(context, {
@@ -84,7 +89,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
       // triggered when the user changes files (including switching to an already open file)
       vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-        if (!editor) return;
+        if (!editor) {
+          return;
+        }
         state.setFullFileName(editor.document.fileName);
         if (state.getRawFileName().includes(".git")) {
           return;
@@ -94,7 +101,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
       // triggered when the user scrolls the screen
       vscode.window.onDidChangeTextEditorVisibleRanges(async (editor) => {
-        if (!editor) return;
+        if (!editor) {
+          return;
+        }
         state.setFullFileName(editor.textEditor.document.fileName);
         await registerActivity(context, {
           eventType: "screenScrolling",
@@ -104,7 +113,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
       // triggered when the user moves the cursor, selects text
       vscode.window.onDidChangeTextEditorSelection(async (event) => {
-        if (!event) return;
+        if (!event) {
+          return;
+        }
         state.setFullFileName(event.textEditor.document.fileName);
         await registerActivity(context, { eventType: "cursorMove", state });
       }),

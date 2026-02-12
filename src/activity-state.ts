@@ -25,7 +25,6 @@ export class ActivityState {
     return state;
   }
 
-
   public get heartbeatBufferData() {
     return this.heartbeatBuffer;
   }
@@ -52,7 +51,10 @@ export class ActivityState {
 
   public shouldDebounce(): boolean {
     const now = Date.now();
-    if (now - this.lastRegister < DEBOUNCEMS) return true;
+    if (now - this.lastRegister < DEBOUNCEMS) {
+      return true;
+    }
+
     this.lastRegister = now;
     return false;
   }
@@ -71,8 +73,6 @@ export class ActivityState {
   public pushHeartbeat(hb: Heartbeat) {
     this.lastHeartbeat = hb;
     this.heartbeatBuffer.push(hb);
-    console.log('criei e salvei db no state');
-    
   }
 
   public schedule(fn: () => Promise<void>, delay: number) {
