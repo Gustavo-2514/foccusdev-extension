@@ -1,6 +1,6 @@
 # FoccusDEV
 
-[English version](README.en.md)
+[English version](README.en.md) | [Site Oficial](https://www.foccusdev.xyz/)
 
 FoccusDEV é uma extensão para VS Code que monitora sua atividade de codificação e exibe métricas de produtividade em um painel local.
 
@@ -15,6 +15,24 @@ FoccusDEV é uma extensão para VS Code que monitora sua atividade de codificaç
 - Controle de limite do banco local (15 MB a 100 MB).
 - Limpeza total de dados diretamente pela interface.
 - Atalho por status bar para abrir o painel.
+
+## Como Instalar
+
+### Via VS Code Marketplace
+
+1. Abra o VS Code e pressione `Ctrl+P` (Quick Open).
+2. Cole o seguinte comando e pressione Enter:
+   ```bash
+   ext install gustavo-2514.foccusdev
+   ```
+
+Ou acesse diretamente: [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=gustavo-2514.foccusdev)
+
+### Via Open VSX
+
+Se você utiliza o Cursor, Antigravity, VSCodium ou outra versão open-source:
+
+[Open VSX Registry](https://open-vsx.org/extension/gustavo-2514/foccusdev)
 
 ## Como usar
 
