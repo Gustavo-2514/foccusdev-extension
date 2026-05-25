@@ -1,6 +1,6 @@
 # FoccusDEV
 
-[English version](README.en.md) | [Site Oficial](https://www.foccusdev.xyz/)
+[English version](README.en.md) | [Site Oficial]([https://www.foccusdev.xyz](https://foccusdev.vercel.app/)
 
 FoccusDEV é uma extensão para VS Code que monitora sua atividade de codificação e exibe métricas de produtividade em um painel local.
 
